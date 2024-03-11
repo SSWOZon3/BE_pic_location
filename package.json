@@ -1,0 +1,26 @@
+{
+  "name": "piclocation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "npm i && node --env-file=.dev.env src/main.mjs",
+    "test": "mocha 'test/**/*.test.js'"
+  },
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.498.0",
+    "bcryptjs": "^2.4.3",
+    "chai": "4.3.10",
+    "chai-http": "4.4.0",
+    "dotenv": "16.3.1",
+    "express": "4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mocha": "10.2.0",
+    "mongoose": "8.0.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}
