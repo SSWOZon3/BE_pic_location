@@ -1,3 +1,5 @@
+import { reviewMapper } from "./reviewMapper.js";
+
 export const userMapper = (user) => ({
     username: user.username,
     email: user.email,
