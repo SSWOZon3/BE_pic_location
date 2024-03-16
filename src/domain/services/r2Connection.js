@@ -1,30 +1,42 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 const client = new S3Client({
-    // endpoint: "https://c9fe26d4988b3039627ab8622132c152.r2.cloudflarestorage.com/pic-test",
-    endpoint: "http://localhost:9000",
+    // ,
+    endpoint: "http://minio:9000",
     credentials: {
-        // accessKeyId: "0e71cbbc3340d8671815b2bed212298a",
-        // secretAccessKey: "3e1b201ce441b5c4656c9f3b08aac8f417cc33ae79fedf571e75b7693e65fb0f"
+        // accessKeyId: "",
+        // secretAccessKey: ""
         accessKeyId: "minioadmin",
-        secretAccessKey: "minioadmin"
+        secretAccessKey: "minioadmin",
     },
-    region: "auto"
+    forcePathStyle: true,
+    region: "eu-central-1",
 });
 
-export const  uploadFile = async (fileContent, fileName) => {
+export const uploadPic = async (fileContent, fileName, mimeType) => {
+    console.log(mimeType);
     const uploadParams = {
-        Bucket: 'images_test',
+        Bucket: 'new-bucket',
         Key: fileName,
-        Body: fileContent
+        Body: fileContent,
+        ContentType: mimeType,
     };
 
     try {
-        const data = await client.send(new PutObjectCommand(uploadParams));
-        return data;
+        await client.send(new PutObjectCommand(uploadParams));
     } catch (err) {
         console.log("Error", err);
     }
 }
 
-// Llama a uploadFile con los parámetros adecuados
+export const getPic = async (fileName) => {
+    const getPicParams = {
+        Key: fileName,
+        Bucket: 'new-bucket',
+    }
+    try {
+        await client.send(new GetObjectCommand(getPicParams))
+    } catch(err) {
+        console.log("Error", err);
+    }
+}

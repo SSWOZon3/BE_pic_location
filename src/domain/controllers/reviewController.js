@@ -1,41 +1,50 @@
 import Review from "../entities/review.js";
-import multer from "multer";
-import { uploadFile } from "../services/r2Connection.js";
+import { uploadPic } from "../services/r2Connection.js";
 import { reviewMapper } from "../mappers/reviewMapper.js";
+import { v4 as uuidv4 } from 'uuid';
+// TODO: FInish the image sizing and also the image dimensions
+// import sizeOf from 'image-size';
 
-const upload = multer({ dest: 'uploads/' });
+const supportedImageFileType = ['image/jpg', 'image/webp'];
+
+const imageUrlBuilder = (urlPath) => {
+    const bucketName = 'new-bucket';
+    return `http://localhost:9000/${bucketName}/${urlPath}`;
+}
 
 export const createReviewController = async (req, res) => {
-
-    // upload.single('image')
     try {
-        // TODO: AAddd multer 
         const { title, latitude, longitude, description } = req.body;
-        const fileContent = fs.readFileSync(req.file.path);
+        const fileContent = req.file.buffer;
+        const sizeInKb = fileContent.length / 1024;
+        if(sizeInKb.toFixed(2) > 400) {
+            throw new Error('Image size should be less than 400 KiB');
+        }
 
+        const urlPath = `reviews/${uuidv4()}`;
+        const mimeType = req.file.mimetype;
+        if(!req.file || !supportedImageFileType.includes(mimeType)) {
+            throw new Error('Unsupported type');
+        }
 
-        console.log(req.body);
+        // TODO: pensar si tiene más sentido hacer el upload del pic primero o la inserción en la bbdd
+        // De cara a la corrección de posibles errores de ejecución
+        await uploadPic(fileContent, urlPath, mimeType);
 
         const review = await Review.create({
+            publisher: req.user._id,
+            title,
             description,
             location: {
                 coordinates: [longitude, latitude]
             },
-            title,
+            imageUrl: imageUrlBuilder(urlPath),
         });
-        const prettyResponse = {
-            _id: review._id,
-            title: review.title,
-            description: review.description,
-            longitude: review.location.coordinates[0],
-            latitude: review.location.coordinates[1]
-        }
 
-        const data = await uploadFile(fileContent, `${prettyResponse._id}`);
-        console.log(data);
-
-        res.status(201).json(prettyResponse);
+        const response = reviewMapper(review);
+        res.status(201).json(response);
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -46,18 +55,7 @@ export const getReviewController = async (req, res) => {
         const review = await Review.findOne({
             _id,
         });
-
-        const prettyResponse = {
-            _id: review._id,
-            title: review.title,
-            description: review.description,
-            longitude: review.location.coordinates[0],
-            latitude: review.location.coordinates[1],
-            imageUrl: review.imageUrl,
-            publisherId: review.publisher,
-        }
-
-        console.log(prettyResponse);
+        const prettyResponse = reviewMapper(review);
           
         res.status(201).json(prettyResponse);
     } catch (error) {
